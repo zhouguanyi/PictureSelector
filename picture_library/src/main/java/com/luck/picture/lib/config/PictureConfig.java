@@ -57,7 +57,11 @@ public final class PictureConfig {
     @Deprecated
     public final static int TYPE_AUDIO = 3;
 
+    public final static long MB = 1048576;
+
     public final static int MAX_COMPRESS_SIZE = 100;
+
+    public final static int DEFAULT_SPAN_COUNT = 4;
 
     public final static int TYPE_CAMERA = 1;
     public final static int TYPE_PICTURE = 2;

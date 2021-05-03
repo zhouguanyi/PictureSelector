@@ -3,6 +3,7 @@ package com.luck.picture.lib;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Build;
+import android.text.TextUtils;
 
 import androidx.annotation.ColorInt;
 import androidx.annotation.FloatRange;
@@ -14,7 +15,6 @@ import com.luck.picture.lib.animators.AnimationType;
 import com.luck.picture.lib.config.PictureConfig;
 import com.luck.picture.lib.config.PictureMimeType;
 import com.luck.picture.lib.config.PictureSelectionConfig;
-import com.luck.picture.lib.config.UCropOptions;
 import com.luck.picture.lib.engine.CacheResourcesEngine;
 import com.luck.picture.lib.engine.ImageEngine;
 import com.luck.picture.lib.entity.LocalMedia;
@@ -24,11 +24,15 @@ import com.luck.picture.lib.listener.OnResultCallbackListener;
 import com.luck.picture.lib.listener.OnVideoSelectedPlayCallback;
 import com.luck.picture.lib.style.PictureCropParameterStyle;
 import com.luck.picture.lib.style.PictureParameterStyle;
+import com.luck.picture.lib.style.PictureSelectorUIStyle;
 import com.luck.picture.lib.style.PictureWindowAnimationStyle;
 import com.luck.picture.lib.tools.DoubleUtils;
 import com.luck.picture.lib.tools.SdkVersionUtils;
+import com.yalantis.ucrop.UCrop;
 
 import java.lang.ref.WeakReference;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 
 import static android.os.Build.VERSION_CODES.KITKAT;
@@ -40,8 +44,8 @@ import static android.os.Build.VERSION_CODES.KITKAT;
  */
 
 public class PictureSelectionModel {
-    private PictureSelectionConfig selectionConfig;
-    private PictureSelector selector;
+    private final PictureSelectionConfig selectionConfig;
+    private final PictureSelector selector;
 
     public PictureSelectionModel(PictureSelector selector, int chooseMode) {
         this.selector = selector;
@@ -63,6 +67,24 @@ public class PictureSelectionModel {
      */
     public PictureSelectionModel theme(@StyleRes int themeStyleId) {
         selectionConfig.themeStyleId = themeStyleId;
+        return this;
+    }
+
+    /**
+     * Setting PictureSelector UI Style
+     *
+     * @param uiStyle <p>
+     *                {@link PictureSelectorUIStyle}
+     *                </p>
+     * @return
+     */
+    public PictureSelectionModel setPictureUIStyle(PictureSelectorUIStyle uiStyle) {
+        if (uiStyle != null) {
+            PictureSelectionConfig.uiStyle = uiStyle;
+            if (!selectionConfig.isWeChatStyle) {
+                selectionConfig.isWeChatStyle = PictureSelectionConfig.uiStyle.isNewSelectStyle;
+            }
+        }
         return this;
     }
 
@@ -115,6 +137,9 @@ public class PictureSelectionModel {
 
     /**
      * Only for Android version Q
+     * <p>
+     * 已废弃，没有存在的意义了，之前主要是为了解决在华为10系统上一直loading问题
+     * </p>
      *
      * @param cacheResourcesEngine Image Cache
      * @return
@@ -210,6 +235,17 @@ public class PictureSelectionModel {
     }
 
     /**
+     * Set Custom Camera Photo Loading color
+     *
+     * @param color
+     * @return
+     */
+    public PictureSelectionModel setCaptureLoadingColor(int color) {
+        selectionConfig.captureLoadingColor = color;
+        return this;
+    }
+
+    /**
      * @param enableCrop Do you want to start cutting ?
      * @return Use {link .isEnableCrop()}
      */
@@ -232,7 +268,7 @@ public class PictureSelectionModel {
      * @param uCropOptions UCrop parameter configuration is provided
      * @return
      */
-    public PictureSelectionModel basicUCropConfig(UCropOptions uCropOptions) {
+    public PictureSelectionModel basicUCropConfig(UCrop.Options uCropOptions) {
         selectionConfig.uCropOptions = uCropOptions;
         return this;
     }
@@ -248,7 +284,7 @@ public class PictureSelectionModel {
 
 
     /**
-     * @param enablePreviewAudio Do you want to ic_play audio ?
+     * @param enablePreviewAudio {@link use isEnablePreviewAudio}
      * @return
      */
     @Deprecated
@@ -258,10 +294,9 @@ public class PictureSelectionModel {
     }
 
     /**
-     * @param enablePreviewAudio Do you want to ic_play audio ?
+     * @param enablePreviewAudio
      * @return
      */
-    @Deprecated
     public PictureSelectionModel isEnablePreviewAudio(boolean enablePreviewAudio) {
         selectionConfig.enablePreviewAudio = enablePreviewAudio;
         return this;
@@ -424,7 +459,7 @@ public class PictureSelectionModel {
      * @return
      */
     public PictureSelectionModel maxVideoSelectNum(int maxVideoSelectNum) {
-        selectionConfig.maxVideoSelectNum = maxVideoSelectNum;
+        selectionConfig.maxVideoSelectNum = selectionConfig.chooseMode == PictureMimeType.ofVideo() ? 0 : maxVideoSelectNum;
         return this;
     }
 
@@ -544,12 +579,26 @@ public class PictureSelectionModel {
     }
 
     /**
-     * # alternative api cameraFileName(xxx.PNG);
+     * <p>
+     * if Android SDK >=Q Please use the video/mp4 or video/jpeg ... PictureMimeType.MP4_Q or PictureMimeType.PNG_Q
+     * else PictureMimeType.PNG or PictureMimeType.JPEG
+     * </p>
      *
      * @param suffixType PictureSelector media format
      * @return
      */
     public PictureSelectionModel imageFormat(String suffixType) {
+        if (SdkVersionUtils.checkedAndroid_Q() || SdkVersionUtils.checkedAndroid_R()) {
+            if (TextUtils.equals(suffixType, PictureMimeType.PNG)) {
+                suffixType = PictureMimeType.PNG_Q;
+            }
+            if (TextUtils.equals(suffixType, PictureMimeType.JPEG)) {
+                suffixType = PictureMimeType.JPEG_Q;
+            }
+            if (TextUtils.equals(suffixType, PictureMimeType.MP4)) {
+                suffixType = PictureMimeType.MP4_Q;
+            }
+        }
         selectionConfig.suffixType = suffixType;
         return this;
     }
@@ -605,6 +654,15 @@ public class PictureSelectionModel {
      */
     public PictureSelectionModel recordVideoSecond(int recordVideoSecond) {
         selectionConfig.recordVideoSecond = recordVideoSecond;
+        return this;
+    }
+
+    /**
+     * @param recordVideoMinSecond video record second
+     * @return
+     */
+    public PictureSelectionModel recordVideoMinSecond(int recordVideoMinSecond) {
+        selectionConfig.recordVideoMinSecond = recordVideoMinSecond;
         return this;
     }
 
@@ -844,11 +902,58 @@ public class PictureSelectionModel {
     /**
      * # file size The unit is M
      *
-     * @param fileSize Filter file size
+     * @param fileSize Filter max file size
+     *                 Use {@link .filterMaxFileSize()}
      * @return
      */
-    public PictureSelectionModel queryMaxFileSize(float fileSize) {
-        selectionConfig.filterFileSize = fileSize;
+    @Deprecated
+    public PictureSelectionModel queryFileSize(float fileMSize) {
+        selectionConfig.filterFileSize = fileMSize;
+        return this;
+    }
+
+    /**
+     * # file size The unit is KB
+     *
+     * @param fileSize Filter max file size
+     * @return
+     */
+    public PictureSelectionModel filterMaxFileSize(long fileKbSize) {
+        if (fileKbSize >= PictureConfig.MB) {
+            selectionConfig.filterMaxFileSize = fileKbSize;
+        } else {
+            selectionConfig.filterMaxFileSize = fileKbSize * 1024;
+        }
+        return this;
+    }
+
+    /**
+     * # file size The unit is KB
+     *
+     * @param fileSize Filter min file size
+     * @return
+     */
+    public PictureSelectionModel filterMinFileSize(long fileKbSize) {
+        if (fileKbSize >= PictureConfig.MB) {
+            selectionConfig.filterMinFileSize = fileKbSize;
+        } else {
+            selectionConfig.filterMinFileSize = fileKbSize * 1024;
+        }
+        return this;
+    }
+
+    /**
+     * query specified mimeType
+     *
+     * @param mimeTypes Use example {@link { image/jpeg or image/png ... }}
+     * @return
+     */
+    public PictureSelectionModel queryMimeTypeConditions(String... mimeTypes) {
+        if (mimeTypes != null && mimeTypes.length > 0) {
+            selectionConfig.queryMimeTypeHashSet = new HashSet<>(Arrays.asList(mimeTypes));
+        } else {
+            selectionConfig.queryMimeTypeHashSet = null;
+        }
         return this;
     }
 
@@ -858,6 +963,24 @@ public class PictureSelectionModel {
      */
     public PictureSelectionModel isGif(boolean isGif) {
         selectionConfig.isGif = isGif;
+        return this;
+    }
+
+    /**
+     * @param isWebp Whether to open .webp
+     * @return
+     */
+    public PictureSelectionModel isWebp(boolean isWebp) {
+        selectionConfig.isWebp = isWebp;
+        return this;
+    }
+
+    /**
+     * @param isBmp Whether to open .isBmp
+     * @return
+     */
+    public PictureSelectionModel isBmp(boolean isBmp) {
+        selectionConfig.isBmp = isBmp;
         return this;
     }
 
@@ -910,8 +1033,10 @@ public class PictureSelectionModel {
 
     /**
      * @param Specify get image format
+     *                Use {@link .queryMimeTypeConditions()}
      * @return
      */
+    @Deprecated
     public PictureSelectionModel querySpecifiedFormatSuffix(String specifiedFormat) {
         selectionConfig.specifiedFormat = specifiedFormat;
         return this;
@@ -1120,10 +1245,16 @@ public class PictureSelectionModel {
      * 动态设置裁剪主题样式
      *
      * @param style 裁剪页主题
+     *              <p>{@link PictureSelectorUIStyle}</>
      * @return
      */
+    @Deprecated
     public PictureSelectionModel setPictureCropStyle(PictureCropParameterStyle style) {
-        selectionConfig.cropStyle = style;
+        if (style != null) {
+            PictureSelectionConfig.cropStyle = style;
+        } else {
+            PictureSelectionConfig.cropStyle = PictureCropParameterStyle.ofDefaultCropStyle();
+        }
         return this;
     }
 
@@ -1131,10 +1262,19 @@ public class PictureSelectionModel {
      * 动态设置相册主题样式
      *
      * @param style 主题
+     *              <p>{@link PictureSelectorUIStyle}</>
      * @return
      */
+    @Deprecated
     public PictureSelectionModel setPictureStyle(PictureParameterStyle style) {
-        selectionConfig.style = style;
+        if (style != null) {
+            PictureSelectionConfig.style = style;
+            if (!selectionConfig.isWeChatStyle) {
+                selectionConfig.isWeChatStyle = style.isNewSelectStyle;
+            }
+        } else {
+            PictureSelectionConfig.style = PictureParameterStyle.ofDefaultStyle();
+        }
         return this;
     }
 
@@ -1145,7 +1285,11 @@ public class PictureSelectionModel {
      * @return
      */
     public PictureSelectionModel setPictureWindowAnimationStyle(PictureWindowAnimationStyle windowAnimationStyle) {
-        selectionConfig.windowAnimationStyle = windowAnimationStyle;
+        if (windowAnimationStyle != null) {
+            PictureSelectionConfig.windowAnimationStyle = windowAnimationStyle;
+        } else {
+            PictureSelectionConfig.windowAnimationStyle = PictureWindowAnimationStyle.ofDefaultWindowAnimationStyle();
+        }
         return this;
     }
 
@@ -1233,11 +1377,8 @@ public class PictureSelectionModel {
             } else {
                 activity.startActivityForResult(intent, requestCode);
             }
-            PictureWindowAnimationStyle windowAnimationStyle = selectionConfig.windowAnimationStyle;
-            activity.overridePendingTransition(windowAnimationStyle != null &&
-                    windowAnimationStyle.activityEnterAnimation != 0 ?
-                    windowAnimationStyle.activityEnterAnimation :
-                    R.anim.picture_anim_enter, R.anim.picture_anim_fade_in);
+            PictureWindowAnimationStyle windowAnimationStyle = PictureSelectionConfig.windowAnimationStyle;
+            activity.overridePendingTransition(windowAnimationStyle.activityEnterAnimation, R.anim.picture_anim_fade_in);
         }
     }
 
@@ -1301,11 +1442,9 @@ public class PictureSelectionModel {
             } else {
                 activity.startActivity(intent);
             }
-            PictureWindowAnimationStyle windowAnimationStyle = selectionConfig.windowAnimationStyle;
-            activity.overridePendingTransition(windowAnimationStyle != null &&
-                    windowAnimationStyle.activityEnterAnimation != 0 ?
-                    windowAnimationStyle.activityEnterAnimation :
-                    R.anim.picture_anim_enter, R.anim.picture_anim_fade_in);
+            PictureWindowAnimationStyle windowAnimationStyle = PictureSelectionConfig.windowAnimationStyle;
+            activity.overridePendingTransition(
+                    windowAnimationStyle.activityEnterAnimation, R.anim.picture_anim_fade_in);
         }
     }
 
@@ -1339,11 +1478,8 @@ public class PictureSelectionModel {
             } else {
                 activity.startActivityForResult(intent, requestCode);
             }
-            PictureWindowAnimationStyle windowAnimationStyle = selectionConfig.windowAnimationStyle;
-            activity.overridePendingTransition(windowAnimationStyle != null &&
-                    windowAnimationStyle.activityEnterAnimation != 0 ?
-                    windowAnimationStyle.activityEnterAnimation :
-                    R.anim.picture_anim_enter, R.anim.picture_anim_fade_in);
+            PictureWindowAnimationStyle windowAnimationStyle = PictureSelectionConfig.windowAnimationStyle;
+            activity.overridePendingTransition(windowAnimationStyle.activityEnterAnimation, R.anim.picture_anim_fade_in);
         }
     }
 
@@ -1355,10 +1491,7 @@ public class PictureSelectionModel {
      */
     public void openExternalPreview(int position, List<LocalMedia> medias) {
         if (selector != null) {
-            selector.externalPicturePreview(position, medias,
-                    selectionConfig.windowAnimationStyle != null &&
-                            selectionConfig.windowAnimationStyle.activityPreviewEnterAnimation != 0
-                            ? selectionConfig.windowAnimationStyle.activityPreviewEnterAnimation : 0);
+            selector.externalPicturePreview(position, medias, PictureSelectionConfig.windowAnimationStyle.activityPreviewEnterAnimation);
         } else {
             throw new NullPointerException("This PictureSelector is Null");
         }
@@ -1376,9 +1509,7 @@ public class PictureSelectionModel {
     public void openExternalPreview(int position, String directory_path, List<LocalMedia> medias) {
         if (selector != null) {
             selector.externalPicturePreview(position, directory_path, medias,
-                    selectionConfig.windowAnimationStyle != null &&
-                            selectionConfig.windowAnimationStyle.activityPreviewEnterAnimation != 0
-                            ? selectionConfig.windowAnimationStyle.activityPreviewEnterAnimation : 0);
+                    PictureSelectionConfig.windowAnimationStyle.activityPreviewEnterAnimation);
         } else {
             throw new NullPointerException("This PictureSelector is Null");
         }

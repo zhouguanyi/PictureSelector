@@ -102,6 +102,18 @@
         <item name="picture.crop.title.color">@color/picture_color_white</item>
         <!--相册文件夹列表选中图标-->
         <item name="picture.folder_checked_dot">@drawable/picture_orange_oval</item>
+        <!--原图勾选样式-->
+        <item name="picture.original.check.style">@drawable/picture_original_wechat_checkbox</item>
+        <!--原图字体颜色-->
+        <item name="picture.original.text.color">@color/picture_color_white</item>
+        <!--相册目录文件夹字体颜色-->
+        <item name="picture.folder.textColor">@color/picture_color_4d</item>
+        <!--相册目录文件夹字体大小-->
+        <item name="picture.folder.textSize">16sp</item>
+        <!--相册背景底色-->
+        <item name="picture.container.backgroundColor">@color/picture_color_white</item>
+        <!--标题栏高度-->
+        <item name="picture.titleBar.height">48dp</item>
     </style>
 
 
@@ -156,6 +168,20 @@
         <item name="picture.crop.title.color">@color/picture_color_white</item>
         <!--相册文件夹列表选中图标-->
         <item name="picture.folder_checked_dot">@drawable/picture_orange_oval</item>
+        <!--原图勾选样式-->
+        <item name="picture.original.check.style">@drawable/picture_original_wechat_checkbox</item>
+        <!--原图字体颜色-->
+        <item name="picture.original.text.color">@color/picture_color_white</item>
+        <!--相册目录文件夹字体颜色-->
+        <item name="picture.folder.textColor">@color/picture_color_4d</item>
+        <!--相册目录文件夹字体大小-->
+        <item name="picture.folder.textSize">16sp</item>
+        <!--相册背景底色-->
+        <item name="picture.container.backgroundColor">@color/picture_color_black</item>
+        <!--标题栏高度-->
+        <item name="picture.titleBar.height">48dp</item>
+        <!--标题栏右侧按钮方向箭头left Padding-->
+        <item name="picture.titleRightArrow.LeftPadding">3dp</item>
     </style>
 
     <style name="Picture.Theme.Translucent" parent="Base.Theme.NoActionBar">
@@ -167,4 +193,58 @@
 
     <style name="Base.Theme.NoActionBar" parent="Theme.AppCompat.Light.NoActionBar" />
 
+
+    <!--Ucrop-->
+    <style name="ucrop_ImageViewWidgetIcon">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_gravity">center</item>
+        <item name="android:scaleType">fitCenter</item>
+        <item name="android:duplicateParentState">true</item>
+    </style>
+
+    <style name="ucrop_WrapperIconState">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_weight">1</item>
+        <item name="background">?attr/selectableItemBackground</item>
+        <item name="android:clickable">true</item>
+        <item name="android:gravity">center</item>
+        <item name="android:orientation">vertical</item>
+    </style>
+
+    <style name="ucrop_WrapperRotateButton">
+        <item name="android:layout_width">@dimen/ucrop_size_wrapper_rotate_button</item>
+        <item name="android:layout_height">@dimen/ucrop_size_wrapper_rotate_button</item>
+        <item name="background">?attr/selectableItemBackgroundBorderless</item>
+        <item name="android:clickable">true</item>
+    </style>
+
+    <style name="ucrop_TextViewCropAspectRatio">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">@dimen/ucrop_height_crop_aspect_ratio_text</item>
+        <item name="android:layout_gravity">center</item>
+        <item name="android:duplicateParentState">true</item>
+        <item name="android:textColor">@color/ucrop_scale_text_view_selector</item>
+    </style>
+
+    <style name="ucrop_TextViewWidgetText">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_centerHorizontal">true</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/ucrop_color_widget_text</item>
+        <item name="android:layout_marginTop">@dimen/ucrop_margin_top_widget_text</item>
+        <item name="android:textSize">@dimen/ucrop_text_size_widget_text</item>
+    </style>
+
+    <style name="ucrop_TextViewWidget">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_centerHorizontal">true</item>
+        <item name="android:layout_marginTop">@dimen/ucrop_margin_top_controls_text</item>
+        <item name="android:textColor">@color/ucrop_color_widget_active</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">@dimen/ucrop_text_size_controls_text</item>
+    </style>
 </resources>

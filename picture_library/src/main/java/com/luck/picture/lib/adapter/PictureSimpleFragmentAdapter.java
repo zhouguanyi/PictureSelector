@@ -39,8 +39,8 @@ import java.util.List;
 
 public class PictureSimpleFragmentAdapter extends PagerAdapter {
     private List<LocalMedia> data;
-    private OnCallBackActivity onBackPressed;
-    private PictureSelectionConfig config;
+    private final OnCallBackActivity onBackPressed;
+    private final PictureSelectionConfig config;
     /**
      * Maximum number of cached images
      */
@@ -216,7 +216,6 @@ public class PictureSimpleFragmentAdapter extends PagerAdapter {
     private void displayLongPic(Uri uri, SubsamplingScaleImageView longImg) {
         longImg.setQuickScaleEnabled(true);
         longImg.setZoomEnabled(true);
-        longImg.setPanEnabled(true);
         longImg.setDoubleTapZoomDuration(100);
         longImg.setMinimumScaleType(SubsamplingScaleImageView.SCALE_TYPE_CENTER_CROP);
         longImg.setDoubleTapZoomDpi(SubsamplingScaleImageView.ZOOM_FOCUS_CENTER);

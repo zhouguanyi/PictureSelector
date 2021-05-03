@@ -2,7 +2,6 @@ package com.luck.picture.lib;
 
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -14,8 +13,6 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.camera.core.CameraX;
-import androidx.camera.view.CameraView;
 
 import com.luck.picture.lib.camera.CustomCameraView;
 import com.luck.picture.lib.camera.listener.CameraListener;
@@ -27,7 +24,6 @@ import com.luck.picture.lib.dialog.PictureCustomDialog;
 import com.luck.picture.lib.permissions.PermissionChecker;
 
 import java.io.File;
-import java.lang.ref.WeakReference;
 
 /**
  * @author：luck
@@ -131,8 +127,6 @@ public class PictureCustomCameraActivity extends PictureSelectorCameraEmptyActiv
      */
     protected void initView() {
         mCameraView.setPictureSelectionConfig(config);
-        // 绑定生命周期
-        mCameraView.setBindToLifecycle(new WeakReference<>(this).get());
         // 视频最大拍摄时长
         if (config.recordVideoSecond > 0) {
             mCameraView.setRecordVideoMaxTime(config.recordVideoSecond);
@@ -141,10 +135,13 @@ public class PictureCustomCameraActivity extends PictureSelectorCameraEmptyActiv
         if (config.recordVideoMinSecond > 0) {
             mCameraView.setRecordVideoMinTime(config.recordVideoMinSecond);
         }
+        // 设置拍照时loading色值
+        if (config.captureLoadingColor != 0) {
+            mCameraView.setCaptureLoadingColor(config.captureLoadingColor);
+        }
         // 获取CameraView
-        CameraView cameraView = mCameraView.getCameraView();
-        if (cameraView != null && config.isCameraAroundState) {
-            cameraView.toggleCamera();
+        if (config.isCameraAroundState) {
+            mCameraView.toggleCamera();
         }
         // 获取录制按钮
         CaptureLayout captureLayout = mCameraView.getCaptureLayout();
@@ -202,17 +199,7 @@ public class PictureCustomCameraActivity extends PictureSelectorCameraEmptyActiv
         if (config != null && config.camera && PictureSelectionConfig.listener != null) {
             PictureSelectionConfig.listener.onCancel();
         }
-        closeActivity();
-    }
-
-    @SuppressLint("RestrictedApi")
-    @Override
-    protected void onDestroy() {
-        if (mCameraView != null) {
-            CameraX.unbindAll();
-            mCameraView = null;
-        }
-        super.onDestroy();
+        exit();
     }
 
     @Override
@@ -272,7 +259,10 @@ public class PictureCustomCameraActivity extends PictureSelectorCameraEmptyActiv
             if (!isFinishing()) {
                 dialog.dismiss();
             }
-            closeActivity();
+            if (PictureSelectionConfig.listener != null) {
+                PictureSelectionConfig.listener.onCancel();
+            }
+            exit();
         });
         btn_commit.setOnClickListener(v -> {
             if (!isFinishing()) {
@@ -282,5 +272,13 @@ public class PictureCustomCameraActivity extends PictureSelectorCameraEmptyActiv
             isEnterSetting = true;
         });
         dialog.show();
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (mCameraView != null) {
+            mCameraView.unbindCameraController();
+        }
+        super.onDestroy();
     }
 }
